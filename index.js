@@ -58,22 +58,29 @@ app.get("/api/users", (req, res) => {
 app.post("/api/users/:_id/exercises", (req, res) => {
   let { _id, description, duration, date } = req.body;
   if (date === "") date = new Date();
-  User.findById(_id, (err, user) => {
-    console.log(user);
+  const newExercise = new Exercise({
+    user: _id,
+    description,
+    duration,
+    date,
+  });
+  newExercise.save((err, exercise) => {
     if (err) {
       console.log(err);
     } else {
-      let username = user.username;
-      const newExercise = new Exercise({
-        user: _id,
-        description,
-        duration,
-        date,
-      });
-      newExercise.save((err, exercise) => {
-        if (err) console.log(err);
-        date = exercise.date.toDateString();
-        res.json({ _id, username, description, duration, date });
+      date = exercise.date.toDateString();
+      User.findById(_id, (err, user) => {
+        if (err) {
+          console.log(err);
+        } else {
+          res.json({
+            _id,
+            username: user.username,
+            description,
+            duration,
+            date,
+          });
+        }
       });
     }
   });
