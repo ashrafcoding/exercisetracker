@@ -64,62 +64,21 @@ app.get("/api/users", (req, res) => {
 app.post("/api/users/:_id/exercises", (req, res) => {
   let { _id, description, duration, date } = req.body;
   if (date === "") date = new Date();
-  // const newExercise = new Exercise({
-  //   user: _id,
-  //   description,
-  //   duration,
-  //   date,
-  // });
-  // newExercise.save((err, exercise) => {
-  //   if (err) {
-  //     console.log(err);
-  //   } else {
-  //     date = exercise.date.toDateString();
-  //     User.findById(_id, (err, user) => {
-  //       if (err) {
-  //         console.log(err);
-  //       } else {
-  //         res.json({
-  //           _id,
-  //           username: user.username,
-  //           description,
-  //           duration,
-  //           date,
-  //         });
-  //       }
-  //     });
-  //   }
-  // });
-
-  // let username = ""
-  // User.findOne({_id}).then(user=>{
-  //   if(user){
-  //     const exercise = new Exercise({description, duration,date})
-  //     username = user.username
-  //     exercise.user.push(user)
-  //     user.exercises.push(exercise)
-  //     return Promise.all([exercise.save(), user.save()]);
-  //   }
-  //   else return new Promise( (resolve,reject) => reject('User not found') );
-  // }).then(exercise => {
-  //   res.json({_id,username,description,duration,date})
-  // }).catch(err => res.json({err}))
-
-  User.findOne({ _id }, (err, user) => {
+  User.findById(_id, (err, user) => {
     if (err) {
-      res.json({ error: err.message });
-    } else if (user) {
+      console.log(err);
+    } else {
       const exercise = new Exercise({ description, duration, date, user: _id });
       let username = user.username;
       exercise.save((err, data) => {
         if (err) {
-          res.json({ error: err.message });
+          console.log(err);
         } else {
           date = data.date.toDateString();
           user.exercises.push(data._id);
           user.save((err, updatedUser) => {
             if (err) {
-              res.json({ error: err.message });
+              console.log(err);
             } else {
               res.json({ _id, username, description, duration, date });
             }
@@ -135,21 +94,20 @@ app.get("/api/users/:_id/logs", (req, res) => {
     .populate("exercises")
     .exec((err, logs) => {
       if (err) console.log(err);
-      // let exercises = {
-      //   username: logs[0].user.username,
-      //   count: logs.length,
-      //   _id: logs[0].user._id,
-      //   log: [],
-      // };
-      // logs.forEach((item) => {
-      //   exercises.log.push({
-      //     description: item.description,
-      //     duration: item.duration,
-      //     date: item.date.toDateString(),
-      //   });
-      // });
-      console.log(logs);
-      res.json(logs);
+      let exercises = {
+        username: logs.username,
+        count: logs.exercises.length,
+        _id: logs._id,
+        log: logs.exercises.map((item) => {
+          return {
+            description: item.description,
+            duration: item.duration,
+            date: item.date.toDateString(),
+          };
+        }),
+      };
+      console.log(exercises);
+      res.json(exercises);
     });
 });
 
