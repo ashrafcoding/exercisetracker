@@ -56,7 +56,8 @@ app.get("/api/users", (req, res) => {
 });
 
 app.post("/api/users/:_id/exercises", (req, res) => {
-  let { _id, description, duration, date } = req.body;
+  let { description, duration, date } = req.body;
+  const _id = req.params._id;
   if (date === "") date = new Date();
   const exercise = new Exercise({
     description,
@@ -75,10 +76,12 @@ app.post("/api/users/:_id/exercises", (req, res) => {
     if (err) {
       console.log(err);
     }
-    if (user) {     
+    if (user) {
       let username = user.username;
-      res.json({ _id, username, description, duration, date });     
-    }else{res.json({message:"user not found"})}
+      res.json({ _id, username, description, duration, date });
+    } else {
+      res.json({ message: "user not found" });
+    }
   });
 });
 
@@ -87,6 +90,7 @@ app.get("/api/users/:_id/logs", (req, res) => {
     .populate("user")
     .exec((err, logs) => {
       if (err) console.log(err);
+      if(logs){
       let exercises = {
         username: logs[0].user.username,
         count: logs.length,
@@ -101,6 +105,7 @@ app.get("/api/users/:_id/logs", (req, res) => {
       };
       console.log(exercises);
       res.json(exercises);
+    }else{res.json({message:"no logs found"})}
     });
 });
 
