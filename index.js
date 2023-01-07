@@ -56,22 +56,33 @@ app.get("/api/users", (req, res) => {
 });
 
 app.post("/api/users/:_id/exercises", async (req, res) => {
-  try {
-    let { _id, description, duration, date } = req.body;
-    if (date === "") date = new Date();
-    const user = await User.findById(_id);
-    const exercise = await Exercise.create({
-      user: _id,
-      description,
-      duration,
-      date,
-    });
-    console.log(exercise);
-    date = exercise.date.toDateString();
-    res.json({ _id, username: user.username, description, duration, date });
-  } catch (err) {
-    console.log(err);
-  }
+  let { _id, description, duration, date } = req.body;
+  if (date === "") date = new Date();
+  User.findById({_id}, (err, user) => {
+    if(err){res.json({error: err.message})}
+    let username = user && user.username
+    Exercise.create({user:_id,description,duration,date},(err, exercise)=>{
+      if(err)console.log(err);
+      date = exercise.date.toDateString();
+      res.json({ _id, username, description, duration, date });
+    })
+  })
+  // try {
+  //   let { _id, description, duration, date } = req.body;
+  //   if (date === "") date = new Date();
+  //   const user = await User.findById(_id);
+  //   const exercise = await Exercise.create({
+  //     user: _id,
+  //     description,
+  //     duration,
+  //     date,
+  //   });
+  //   console.log(exercise);
+  //   date = exercise.date.toDateString();
+  //   res.json({ _id, username: user.username, description, duration, date });
+  // } catch (err) {
+  //   console.log(err);
+  // }
 });
 
 app.get("/api/users/:_id/logs", async (req, res) => {
