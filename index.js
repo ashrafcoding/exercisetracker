@@ -71,8 +71,15 @@ app.post("/api/users/:_id/exercises", async (req, res) => {
 });
 
 app.get("/api/users/:_id/logs", async (req, res) => {
+  const filters = {
+    date: {
+      $gte: "2010-11-11",
+      $lt: "2023-01-07",
+    },
+  };
+
   try {
-    const logs = await Exercise.find({ user: req.params._id }).populate("user");
+    const logs = await Exercise.find({ user: req.params._id }).populate("user").limit(5);
     let exercises = {
       username: logs[0].user.username,
       count: logs.length,
@@ -88,7 +95,7 @@ app.get("/api/users/:_id/logs", async (req, res) => {
     });
     res.json(exercises);
   } catch (err) {
-    console.log(err.message);
+    console.log(err);
   }
 });
 
