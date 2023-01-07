@@ -78,9 +78,9 @@ app.post("/api/users/:_id/exercises", (req, res) => {
     }
     if (user) {
       let username = user.username;
-      res.json({ _id, username, description, duration, date });
+      res.json({ _id, username, description, duration, date: date.toDateString()});
     } else {
-      res.json({ message: "user not found" });
+      res.json({ _id, description, duration, date: date.toDateString()});
     }
   });
 });
@@ -103,7 +103,6 @@ app.get("/api/users/:_id/logs", (req, res) => {
           };
         }),
       };
-      console.log(exercises);
       res.json(exercises);
     }else{res.json({message:"no logs found"})}
     });
