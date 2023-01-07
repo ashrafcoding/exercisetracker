@@ -25,14 +25,22 @@ const exerciseSchema = new mongoose.Schema({
     type: Date,
     default: Date.now,
   },
-  user: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "User",
-  },
+  user: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+    },
+  ],
 });
 
 const userSchema = new mongoose.Schema({
   username: String,
+  exercises: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Exercise",
+    },
+  ],
 });
 
 const Exercise = mongoose.model("Exercise", exerciseSchema);
@@ -43,8 +51,8 @@ app.post("/api/users", (req, res) => {
   const user = new User({ username });
   user.save((err, data) => {
     if (err) console.log(err);
-    console.log(data);
-    res.json(data);
+    let user = { username: data.username, _id: data._id };
+    res.json(user);
   });
 });
 
@@ -58,33 +66,47 @@ app.get("/api/users", (req, res) => {
 app.post("/api/users/:_id/exercises", (req, res) => {
   let { _id, description, duration, date } = req.body;
   if (date === "") date = new Date();
-  const newExercise = new Exercise({
-    user: _id,
-    description,
-    duration,
-    date,
-  });
-  newExercise.save((err, exercise) => {
-    if (err) {
-      console.log(err);
-    } else {
-      date = exercise.date.toDateString();
-      User.findById(_id, (err, user) => {
-        if (err) {
-          console.log(err);
-        } else {
-          res.json({
-            _id,
-            username: user.username,
-            description,
-            duration,
-            date,
-          });
-        }
-      });
+  // const newExercise = new Exercise({
+  //   user: _id,
+  //   description,
+  //   duration,
+  //   date,
+  // });
+  // newExercise.save((err, exercise) => {
+  //   if (err) {
+  //     console.log(err);
+  //   } else {
+  //     date = exercise.date.toDateString();
+  //     User.findById(_id, (err, user) => {
+  //       if (err) {
+  //         console.log(err);
+  //       } else {
+  //         res.json({
+  //           _id,
+  //           username: user.username,
+  //           description,
+  //           duration,
+  //           date,
+  //         });
+  //       }
+  //     });
+  //   }
+  // });
+  let username = ""
+  User.findOne({_id}).then(user=>{
+    if(user){
+      const exercise = new Exercise({description, duration,date})
+      username = user.username
+      exercise.user.push(user)
+      user.exercises.push(exercise)
+      return Promise.all([exercise.save(), user.save()]);
     }
-  });
+    else return new Promise( (resolve,reject) => reject('User not found') );
+  }).then(exercise => {
+    res.json({_id,username,description,duration,date})
+  }).catch(err => res.json({err}))
 });
+
 
 app.get("/api/users/:_id/logs", (req, res) => {
   Exercise.find({ user: req.params._id })
