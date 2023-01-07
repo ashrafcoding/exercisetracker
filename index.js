@@ -33,12 +33,12 @@ const exerciseSchema = new mongoose.Schema({
 
 const userSchema = new mongoose.Schema({
   username: String,
-  exercises: [
-    {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Exercise",
-    },
-  ],
+  // exercises: [
+  //   {
+  //     type: mongoose.Schema.Types.ObjectId,
+  //     ref: "Exercise",
+  //   },
+  // ],
 });
 
 const Exercise = mongoose.model("Exercise", exerciseSchema);
@@ -67,45 +67,45 @@ app.post("/api/users/:_id/exercises", (req, res) => {
   User.findById(_id, (err, user) => {
     if (err) {
       console.log(err);
-    } else {
-      if (user) {
-        const exercise = new Exercise({
-          description,
-          duration,
-          date,
-          user: _id,
-        });
-        let username = user.username;
-        exercise.save((err, data) => {
-          if (err) {
-            console.log(err);
-          } else {
-            date = data.date.toDateString();
-            user.exercises.push(data._id);
-            user.save((err, updatedUser) => {
-              if (err) {
-                console.log(err);
-              } else {
-                res.json({ _id, username, description, duration, date });
-              }
-            });
-          }
-        });
-      }
+    }
+    if (user) {
+      const exercise = new Exercise({
+        description,
+        duration,
+        date,
+        user: _id,
+      });
+      let username = user.username;
+      exercise.save((err, data) => {
+        if (err) {
+          console.log(err);
+        } else {
+          date = data.date.toDateString();
+          res.json({ _id, username, description, duration, date });
+          // user.exercises.push(data._id);
+          // user.save((err, updatedUser) => {
+          //   if (err) {
+          //     console.log(err);
+          //   } else {
+          //     res.json({ _id, username, description, duration, date });
+          //   }
+          // });
+        }
+      });
     }
   });
 });
 
 app.get("/api/users/:_id/logs", (req, res) => {
-  User.findOne({ _id: req.params._id })
-    .populate("exercises")
+  Exercise.find({ user: req.params._id })
+    .populate("user")
     .exec((err, logs) => {
       if (err) console.log(err);
       let exercises = {
-        username: logs.username,
-        count: logs.exercises.length,
-        _id: logs._id,
-        log: logs.exercises.map((item) => {
+        username: logs[0].user.username,
+        count: logs.length,
+        _id: logs[0].user._id,
+        log: logs.map((item) => {
           return {
             description: item.description,
             duration: item.duration,
