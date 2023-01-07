@@ -68,23 +68,30 @@ app.post("/api/users/:_id/exercises", (req, res) => {
     if (err) {
       console.log(err);
     } else {
-      const exercise = new Exercise({ description, duration, date, user: _id });
-      let username = user.username;
-      exercise.save((err, data) => {
-        if (err) {
-          console.log(err);
-        } else {
-          date = data.date.toDateString();
-          user.exercises.push(data._id);
-          user.save((err, updatedUser) => {
-            if (err) {
-              console.log(err);
-            } else {
-              res.json({ _id, username, description, duration, date });
-            }
-          });
-        }
-      });
+      if (user) {
+        const exercise = new Exercise({
+          description,
+          duration,
+          date,
+          user: _id,
+        });
+        let username = user.username;
+        exercise.save((err, data) => {
+          if (err) {
+            console.log(err);
+          } else {
+            date = data.date.toDateString();
+            user.exercises.push(data._id);
+            user.save((err, updatedUser) => {
+              if (err) {
+                console.log(err);
+              } else {
+                res.json({ _id, username, description, duration, date });
+              }
+            });
+          }
+        });
+      }
     }
   });
 });
