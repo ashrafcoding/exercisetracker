@@ -58,15 +58,20 @@ app.get("/api/users", (req, res) => {
 app.post("/api/users/:_id/exercises", async (req, res) => {
   let { _id, description, duration, date } = req.body;
   if (date === "") date = new Date();
-  User.findById({_id}, (err, user) => {
-    if(err){res.json({error: err.message})}
-    let username = user && user.username
-    Exercise.create({user:_id,description,duration,date},(err, exercise)=>{
-      if(err)console.log(err);
-      date = exercise.date.toDateString();
-      res.json({ _id, username, description, duration, date });
-    })
-  })
+  User.findById({ _id }, (err, user) => {
+    if (err) {
+      console.log(err);
+    }
+    let username = user && user.username;
+    Exercise.create(
+      { user: _id, description, duration, date },
+      (err, exercise) => {
+        if (err) console.log(err);
+        date = exercise.date.toDateString();
+        res.json({ _id, username, description, duration, date });
+      }
+    );
+  });
   // try {
   //   let { _id, description, duration, date } = req.body;
   //   if (date === "") date = new Date();
@@ -85,28 +90,27 @@ app.post("/api/users/:_id/exercises", async (req, res) => {
   // }
 });
 
-app.get("/api/users/:_id/logs", async (req, res) => {
-  try {
-    const logs = await Exercise.find({ user: req.params._id })
-      .populate("user")
-      .limit(5);
-    let exercises = {
-      username: logs[0].user.username,
-      count: logs.length,
-      _id: logs[0].user._id,
-      log: [],
-    };
-    logs.forEach((item) => {
-      exercises.log.push({
-        description: item.description,
-        duration: item.duration,
-        date: item.date.toDateString(),
+app.get("/api/users/:_id/logs", (req, res) => {
+  Exercise.find({ user: req.params._id })
+    .populate("user")
+    .limit(10)
+    .exec((err, logs) => {
+      if (err) console.log(err);
+      let exercises = {
+        username: logs[0].user.username,
+        count: logs.length,
+        _id: logs[0].user._id,
+        log: [],
+      };
+      logs.forEach((item) => {
+        exercises.log.push({
+          description: item.description,
+          duration: item.duration,
+          date: item.date.toDateString(),
+        });
       });
+      res.json(exercises)
     });
-    res.json(exercises);
-  } catch (err) {
-    console.log(err);
-  }
 });
 
 const listener = app.listen(process.env.PORT || 3000, () => {
