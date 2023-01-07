@@ -33,12 +33,6 @@ const exerciseSchema = new mongoose.Schema({
 
 const userSchema = new mongoose.Schema({
   username: String,
-  // exercises: [
-  //   {
-  //     type: mongoose.Schema.Types.ObjectId,
-  //     ref: "Exercise",
-  //   },
-  // ],
 });
 
 const Exercise = mongoose.model("Exercise", exerciseSchema);
@@ -64,35 +58,27 @@ app.get("/api/users", (req, res) => {
 app.post("/api/users/:_id/exercises", (req, res) => {
   let { _id, description, duration, date } = req.body;
   if (date === "") date = new Date();
+  const exercise = new Exercise({
+    description,
+    duration,
+    date,
+    user: _id,
+  });
+  exercise.save((err, data) => {
+    if (err) {
+      console.log(err);
+    } else {
+      date = data.date.toDateString();
+    }
+  });
   User.findById(_id, (err, user) => {
     if (err) {
       console.log(err);
     }
-    if (user) {
-      const exercise = new Exercise({
-        description,
-        duration,
-        date,
-        user: _id,
-      });
+    if (user) {     
       let username = user.username;
-      exercise.save((err, data) => {
-        if (err) {
-          console.log(err);
-        } else {
-          date = data.date.toDateString();
-          res.json({ _id, username, description, duration, date });
-          // user.exercises.push(data._id);
-          // user.save((err, updatedUser) => {
-          //   if (err) {
-          //     console.log(err);
-          //   } else {
-          //     res.json({ _id, username, description, duration, date });
-          //   }
-          // });
-        }
-      });
-    }
+      res.json({ _id, username, description, duration, date });     
+    }else{res.json({message:"user not found"})}
   });
 });
 
