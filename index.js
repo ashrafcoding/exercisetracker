@@ -56,30 +56,29 @@ app.get("/api/users", (req, res) => {
 });
 
 app.post("/api/users/:_id/exercises", async (req, res) => {
-  let { _id, description, duration, date } = req.body;
-  const user = await User.findById(_id);
-  const { username } = user;
-  if (date === "") date = new Date();
-  const exercise = new Exercise({ user: _id, description, duration, date });
-  exercise.save((err, data) => {
-    if (err) console.log(err.message);
-    console.log(data);
-    let { description, duration, date } = data;
-    date = date.toDateString();
-    res.json({ _id, username, description, duration, date });
-  });
+  try {
+    let { _id, description, duration, date } = req.body;
+    if (date === "") date = new Date();
+    const user = await User.findById(_id);
+    const exercise = await Exercise.create({
+      user: _id,
+      description,
+      duration,
+      date,
+    });
+    console.log(exercise);
+    date = exercise.date.toDateString();
+    res.json({ _id, username: user.username, description, duration, date });
+  } catch (err) {
+    console.log(err);
+  }
 });
 
 app.get("/api/users/:_id/logs", async (req, res) => {
-  const filters = {
-    date: {
-      $gte: "2010-11-11",
-      $lt: "2023-01-07",
-    },
-  };
-
   try {
-    const logs = await Exercise.find({ user: req.params._id }).populate("user").limit(5);
+    const logs = await Exercise.find({ user: req.params._id })
+      .populate("user")
+      .limit(5);
     let exercises = {
       username: logs[0].user.username,
       count: logs.length,
