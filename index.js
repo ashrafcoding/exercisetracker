@@ -70,45 +70,44 @@ app.post("/api/users/:_id/exercises", (req, res) => {
       console.log(err);
     } else {
       date = data.date.toDateString();
-      data.populate('user')
-      .then(ex => {
-        res.json({username:ex.user.username, description,duration:ex.duration,date, _id})
-      })
+      data.populate("user").then((ex) => {
+        res.json({
+          username: ex.user.username,
+          description,
+          duration: ex.duration,
+          date,
+          _id,
+        });
+      });
     }
   });
-  // User.findById(_id, (err, user) => {
-  //   if (err) {
-  //     console.log(err);
-  //   }
-  //   if (user) {
-  //     let username = user.username;
-  //     res.json({ _id, username, description, duration, date: date.toDateString()});
-  //   } else {
-  //     res.json({ _id, description, duration, date: date.toDateString()});
-  //   }
-  // });
 });
 
 app.get("/api/users/:_id/logs", (req, res) => {
   Exercise.find({ user: req.params._id })
+    .limit(5)
+    .gt("date", "2011-11-11")
+    .lt("date", "2023-01-09")
     .populate("user")
     .exec((err, logs) => {
       if (err) console.log(err);
-      if(logs){
-      let exercises = {
-        username: logs[0].user.username,
-        count: logs.length,
-        _id: logs[0].user._id,
-        log: logs.map((item) => {
-          return {
-            description: item.description,
-            duration: item.duration,
-            date: item.date.toDateString(),
-          };
-        }),
-      };
-      res.json(exercises);
-    }else{res.json({message:"no logs found"})}
+      if (logs) {
+        let exercises = {
+          username: logs[0].user.username,
+          count: logs.length,
+          _id: logs[0].user._id,
+          log: logs.map((item) => {
+            return {
+              description: item.description,
+              duration: item.duration,
+              date: item.date.toDateString(),
+            };
+          }),
+        };
+        res.json(exercises);
+      } else {
+        res.json({ message: "no logs found" });
+      }
     });
 });
 
