@@ -87,7 +87,7 @@ app.get("/api/users/:_id/logs", (req, res) => {
   Exercise.find({ user: req.params._id })
     .limit(5)
     .gt("date",new Date("2011-11-11"))
-    .lt("date",new Date("2011-01-09"))
+    .lt("date",new Date("2023-01-09"))
     .populate("user")
     .exec((err, logs) => {
       if (err) console.log(err);
