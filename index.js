@@ -70,19 +70,23 @@ app.post("/api/users/:_id/exercises", (req, res) => {
       console.log(err);
     } else {
       date = data.date.toDateString();
+      data.populate('user')
+      .then(ex => {
+        res.json({username:ex.user.username, description,duration:ex.duration,date, _id})
+      })
     }
   });
-  User.findById(_id, (err, user) => {
-    if (err) {
-      console.log(err);
-    }
-    if (user) {
-      let username = user.username;
-      res.json({ _id, username, description, duration, date: date.toDateString()});
-    } else {
-      res.json({ _id, description, duration, date: date.toDateString()});
-    }
-  });
+  // User.findById(_id, (err, user) => {
+  //   if (err) {
+  //     console.log(err);
+  //   }
+  //   if (user) {
+  //     let username = user.username;
+  //     res.json({ _id, username, description, duration, date: date.toDateString()});
+  //   } else {
+  //     res.json({ _id, description, duration, date: date.toDateString()});
+  //   }
+  // });
 });
 
 app.get("/api/users/:_id/logs", (req, res) => {
