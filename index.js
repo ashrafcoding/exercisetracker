@@ -86,18 +86,27 @@ app.post("/api/users/:_id/exercises", (req, res) => {
 app.get("/api/users/:_id/logs", (req, res) => {
   const {from, to, limit} = req.query;
   Exercise.find({ user: req.params._id })
-    .limit(limit)
-    .gt("date",new Date(from))
-    .lt("date",new Date(to))
     .populate("user")
     .exec((err, logs) => {
-      if (err) console.log(err);
+      if (err) console.log(err.message);
       if (logs) {
+        let temp = logs
+        if(from){
+          const fromDate= new Date(from)
+          temp = temp.filter(exe => new Date(exe.date) > fromDate);
+        }       
+        if(to){
+          const toDate = new Date(to)
+          temp = temp.filter(exe => new Date(exe.date) < toDate);
+        }       
+        if(limit){
+          temp = temp.slice(0,limit);
+        }
         let exercises = {
-          username: logs[0].user.username,
-          count: logs.length,
-          _id: logs[0].user._id,
-          log: logs.map((item) => {
+          username: temp[0].user.username,
+          count: temp.length,
+          _id: temp[0].user._id,
+          log: temp.map((item) => {
             return {
               description: item.description,
               duration: item.duration,
